@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Tab选项卡</title>
+    <link rel="stylesheet" href="./styles/tab.css">
+    <link rel="stylesheet" href="./styles/style.css">
+</head>
+
+<body>
+
+    <main>
+        <h4>
+            Js 动态添加标签页
+        </h4>
+        <div class="tabsbox" id="tab">
+            <!-- tab 标签 -->
+            <nav class="fisrstnav">
+                <ul>
+                    <li class="liactive"><span>测试1</span><span class="iconfont icon-guanbi"></span></li>
+                    <li><span>测试2</span><span class="iconfont icon-guanbi"></span></li>
+                    <li><span>测试3</span><span class="iconfont icon-guanbi"></span></li>
+                </ul>
+                <div class="tabadd">
+                    <span>+</span>
+                </div>
+            </nav>
+
+            <!-- tab 内容 -->
+            <div class="tabscon">
+                <section class="conactive">测试1</section>
+                <section>测试2</section>
+                <section>测试3</section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 缓存this
+        var that = null;
+
+        // 我们使用面向对象完成
+        function Tab(){
+            // 属性
+            // 选项卡标题li部分
+            this.lis = document.querySelectorAll(".fisrstnav ul li");
+            // 选项卡的内容部分
+            this.sections = document.querySelectorAll(".tabscon section");
+            // 获取关闭按钮
+            this.guanbis = document.querySelectorAll(".icon-guanbi");
+            // 获取li里面的第一个子元素span
+            this.spans = document.querySelectorAll(".fisrstnav ul li span:first-child");
+            // 把当前构造函数里面的this赋值给that
+            that = this;
+            // 调用初始化方法
+            this.init();
+        }
+
+        // 方法
+        // 初始化选项卡方法(用于给各种对象绑定事件)
+        Tab.prototype.init = function(){
+            // 调用更新节点的方法
+            this.updateNode();
+            for( var i = 0; i < this.lis.length; i++ ){
+                // 设置自定义属性
+                this.lis[i].setAttribute("data-index" , i);
+                // 循环给每个li绑定事件
+                this.lis[i].onclick = this.toggleTab;
+
+                // 循环给每个关闭按钮绑定事件
+                this.guanbis[i].onclick = this.removeTab;
+
+                // 循环给每个li里面的第一个span元素绑定鼠标双击事件
+                this.spans[i].ondblclick = this.editTab;
+                
+                // 循环给每个section绑定鼠标双击事件
+                this.sections[i].ondblclick = this.editTab;
+            }
+            // 给+号绑定事件
+            this.addTab();
+        }
+        // 更新节点方法(因为我们添加选项和删除选项卡,li和section的个数都会有变化)
+        Tab.prototype.updateNode = function(){
+            // 选项卡标题li部分
+            this.lis = document.querySelectorAll(".fisrstnav ul li");
+            // 选项卡的内容部分
+            this.sections = document.querySelectorAll(".tabscon section");
+            // 获取关闭按钮
+            this.guanbis = document.querySelectorAll(".icon-guanbi");
+            // 获取li里面的第一个子元素span
+            this.spans = document.querySelectorAll(".fisrstnav ul li span:first-child");
+        }
+
+        // 排他,清除所有li和section的类名
+        Tab.prototype.clearStyle = function(){
+            // 排他,清除所有li和section的类名
+            for( var j = 0; j < this.lis.length; j++ ){
+                this.lis[j].removeAttribute("class");
+                this.sections[j].removeAttribute("class");
+            }
+        }
+
+        // 切换选项卡方法
+        Tab.prototype.toggleTab = function(){
+            // 清除样式
+            that.clearStyle();
+
+            // 设置当前对应的li类名
+            this.className = "liactive";
+
+            // 获取当前li身上自定义属性data-index
+            var index = this.getAttribute("data-index");
+            // 设置当前对应sectionl类名
+            that.sections[index].className = "conactive";
+        }
+        // 添加选项卡方法
+        Tab.prototype.addTab = function(){
+            // 获取+号按钮
+            var tabadd = document.querySelector(".tabadd span");
+            // 获取ul对象
+            var ul = document.querySelector(".fisrstnav ul");
+            // 获取.tabscon对象
+            var tabscon = document.querySelector(".tabscon");
+
+            tabadd.onclick = function(){
+                // 清除样式
+                that.clearStyle();
+
+                // 添加新的li
+                var newLi = '<li class="liactive"><span>新选项卡</span><span class="iconfont icon-guanbi"></span></li>';
+
+                // 利用 insertAdjacentHTML(追加的位置,"要追加的字符串元素") 可以直接把字符串格式元素添加到父元素中
+                // 追加的位置有: beforeend 插入元素内部的最后一个子节点之后
+                ul.insertAdjacentHTML( "beforeend" , newLi );
+                
+                // 添加新的section
+                var newSection = '<section class="conactive">'+Math.random()+'</section>';
+                tabscon.insertAdjacentHTML( "beforeend" , newSection );
+
+                // 添加新选项卡完毕以后,我们需要重新调用初始化方法,重新更新节点,给相应的元素重新绑定事件
+                that.init();
+            }
+        }
+        // 删除选项卡方法
+        Tab.prototype.removeTab = function( e ){
+            var e = e || window.event;
+
+            // 阻止冒泡
+            e.stopPropagation();
+    
+            // dom对象.remove() 删除指定的dom对象,这个方法不需要通过父元素删除
+            
+            // 删除当前被点击关闭按钮的父元素li
+            this.parentNode.remove();
+
+            // 获取当前关闭按钮的父元素身上的自定义属性
+            var index = this.parentNode.getAttribute("data-index");
+
+            // 删除对应的section
+            that.sections[index].remove();
+
+            // 调用初始化方法
+            that.init();
+
+            // 如果删除的li是被选中的,我们就让前一个li是选中状态
+            if( document.querySelector(".liactive") == null ){
+                // 自减1,  前一个
+                index--;
+
+                // 判断当前点击的是否为第一个
+                if( index == -1 ){
+                    index++;
+                }
+                
+                // 前一个li手动触发点击事件
+                /* if( that.lis[index] != undefined ){
+                    that.lis[index].click();
+                } */
+                that.lis[index] && that.lis[index].click();
+            }
+        }
+
+        // 编辑选项卡方法
+        Tab.prototype.editTab = function( e ){
+            // console.log("编辑选项卡");
+            // 变成文本框,这个文本框还具有原来的内容
+            
+            // 先获取当前span的原本内容
+            var str = this.innerHTML;
+            
+            // 我们接着在这个当前span中添加一个文本框
+            var input = document.createElement("input");
+            input.type = "text";
+            // 设置文本框的值
+            input.value = str;
+
+            // 清空原本span的标签内容
+            this.innerHTML = "";
+            
+            // 追加input到span中
+            this.appendChild( input );
+
+            // 文本框对象.select()   可以文本框里面的文字处于选定状态
+            input.select();
+
+            // input绑定失去焦点事件
+            input.onblur = function(){
+                // 当前input的父元素是span
+                this.parentNode.innerHTML = this.value;
+            }
+            // input绑定键盘弹起事件
+            input.onkeyup = function( e ){
+                var e = e || window.event;
+                if( e.keyCode == 13 ){
+                    this.blur();
+                }
+            }
+        }
+
+        new Tab();
+    </script>
+</body>
+
+</html>
